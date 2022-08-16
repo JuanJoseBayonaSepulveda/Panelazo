@@ -1,5 +1,6 @@
 package com.proyecto.panelazo.controller;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import org.slf4j.*;
@@ -10,10 +11,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.proyecto.panelazo.model.Producto;
 import com.proyecto.panelazo.model.Usuario;
 import com.proyecto.panelazo.service.ProductoService;
+import com.proyecto.panelazo.service.UploadFileService;
 
 @Controller
 @RequestMapping("/productos")
@@ -23,6 +27,9 @@ public class ProductoController {
 	
 	@Autowired
 	private ProductoService productoService;
+	
+	@Autowired
+	private UploadFileService upload;
 	
 	@GetMapping("")
 	public String show(Model model) {
@@ -36,11 +43,26 @@ public class ProductoController {
 	}
 	
 	@PostMapping("/save")
-	public String save(Producto producto) {
+	public String save(Producto producto, @RequestParam("img") MultipartFile file) throws IOException {
 		LOGGER.info("Este es el objeto producto {}",producto);
 		Usuario u= new Usuario(1, "", "", "", "", "", "", "");
-		
 		producto.setUsuario(u);
+		
+		//imagen
+		if(producto.getId()==null) {//cuando se crea un producto
+			String nombreImagen = upload.saveImage(file);
+			producto.setImagen(nombreImagen);
+		}else {
+			if(file.isEmpty()) {//editar producto pero no se cambia la imagen
+				Producto p= new Producto();
+				p=productoService.get(producto.getId()).get();
+				producto.setImagen(p.getImagen());
+			}else {
+				String nombreImagen = upload.saveImage(file);
+				producto.setImagen(nombreImagen);
+			}
+		}
+		
 		
 		productoService.save(producto);
 		return "redirect:/productos";
