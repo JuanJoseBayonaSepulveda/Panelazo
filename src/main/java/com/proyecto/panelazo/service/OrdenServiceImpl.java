@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.proyecto.panelazo.model.Orden;
+import com.proyecto.panelazo.model.Usuario;
 import com.proyecto.panelazo.repository.IOrdenRepository;
 
 @Service
@@ -54,6 +55,11 @@ public class OrdenServiceImpl implements IOrdenService{
 		}
 		
 		return numeroConcatenado;
+	}
+
+	@Override
+	public List<Orden> findByUsuario(Usuario usuario) {
+		return ordenRepository.findByUsuario(usuario);
 	}
 
 }
